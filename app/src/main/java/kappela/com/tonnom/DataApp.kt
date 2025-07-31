@@ -18,22 +18,30 @@ sealed class EcranData {
 @Composable
 fun DataApp(
     onRetourAccueil: () -> Unit = {},
-    onRetourOnboarding: () -> Unit = {}
+    onRetourOnboarding: () -> Unit = {},
+    isUserMode: Boolean = true
 ) {
     var ecranActuel by remember { mutableStateOf<EcranData>(EcranData.SaisiePersonne) }
+    
+    // Liste temporaire des personnes pour les utilisateurs normaux
+    var personnesTemporaires by remember { mutableStateOf<List<Personne>>(emptyList()) }
     
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         when (ecranActuel) {
             is EcranData.SaisiePersonne -> {
                 SaisiePersonneScreen(
-                    onPersonneAjoutee = {
-                        // Rester sur l'écran de saisie après ajout
-                        // L'utilisateur peut choisir d'aller au tableau s'il le souhaite
+                    onPersonneAjoutee = { personne ->
+                        if (isUserMode) {
+                            // Mode utilisateur : ajouter à la liste temporaire
+                            personnesTemporaires = personnesTemporaires + personne
+                        }
+                        // Sinon, c'est géré dans l'écran (sauvegarde DB pour admin)
                     },
                     onVoirTableau = {
                         ecranActuel = EcranData.TableauPersonnes
                     },
-                    onRetourOnboarding = onRetourOnboarding
+                    onRetourOnboarding = onRetourAccueil,
+                    isUserMode = isUserMode
                 )
             }
             
@@ -45,7 +53,9 @@ fun DataApp(
                     onVoirDetails = { personne ->
                         ecranActuel = EcranData.DetailsPersonne(personne)
                     },
-                    onRetourOnboarding = onRetourOnboarding
+                    onRetourOnboarding = onRetourAccueil,
+                    isUserMode = isUserMode,
+                    personnesTemporaires = if (isUserMode) personnesTemporaires else emptyList()
                 )
             }
             

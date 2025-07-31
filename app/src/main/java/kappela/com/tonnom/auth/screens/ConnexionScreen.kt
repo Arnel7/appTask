@@ -32,9 +32,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnexionScreen(
-    onConnexionReussie: (isAdmin: Boolean) -> Unit,
-    onAllerInscription: () -> Unit,
-    onRetourOnboarding: () -> Unit = {}
+    onConnexionReussie: (isAdmin: Boolean) -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var motDePasse by remember { mutableStateOf("") }
@@ -60,27 +58,9 @@ fun ConnexionScreen(
                     fontWeight = FontWeight.Bold
                 )
             },
-            navigationIcon = {
-                IconButton(onClick = onRetourOnboarding) {
-                    Icon(
-                        Icons.Default.ArrowBack,
-                        contentDescription = "Retour menu"
-                    )
-                }
-            },
-            actions = {
-                IconButton(onClick = onRetourOnboarding) {
-                    Icon(
-                        Icons.Default.Home,
-                        contentDescription = "Menu principal"
-                    )
-                }
-            },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                titleContentColor = MaterialTheme.colorScheme.onPrimary
             )
         )
 
@@ -239,32 +219,40 @@ fun ConnexionScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            TextButton(
-                onClick = onAllerInscription,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    "Pas de compte ? S'inscrire",
-                    fontSize = 16.sp
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                 )
             ) {
-                Text(
-                    text = "💡 Admin par défaut: admin / admin123",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(12.dp),
-                    textAlign = TextAlign.Center
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "💡 Compte administrateur par défaut:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "admin / admin123",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Seul l'administrateur peut créer de nouveaux comptes",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

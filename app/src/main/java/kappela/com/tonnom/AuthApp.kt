@@ -7,20 +7,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import kappela.com.tonnom.auth.screens.AccueilScreen
 import kappela.com.tonnom.auth.screens.ConnexionScreen
-import kappela.com.tonnom.auth.screens.InscriptionScreen
 import kappela.com.tonnom.database.AppDatabase
 
 sealed class EcranAuth {
     object Connexion : EcranAuth()
-    object Inscription : EcranAuth()
     data class Accueil(val isAdmin: Boolean) : EcranAuth()
     object GestionDonnees : EcranAuth()
 }
 
 @Composable
-fun AuthApp(
-    onRetourOnboarding: () -> Unit = {}
-) {
+fun AuthApp() {
     var ecranActuel by remember { mutableStateOf<EcranAuth>(EcranAuth.Connexion) }
     var isCurrentUserAdmin by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -37,22 +33,13 @@ fun AuthApp(
                 ConnexionScreen(
                     onConnexionReussie = { isAdmin ->
                         isCurrentUserAdmin = isAdmin
-                        ecranActuel = EcranAuth.Accueil(isAdmin)
-                    },
-                    onAllerInscription = {
-                        ecranActuel = EcranAuth.Inscription
-                    },
-                    onRetourOnboarding = onRetourOnboarding
-                )
-            }
-            
-            is EcranAuth.Inscription -> {
-                InscriptionScreen(
-                    onInscriptionReussie = {
-                        ecranActuel = EcranAuth.Connexion
-                    },
-                    onRetourConnexion = {
-                        ecranActuel = EcranAuth.Connexion
+                        if (isAdmin) {
+                            // Admin va vers l'écran d'accueil pour gérer les comptes
+                            ecranActuel = EcranAuth.Accueil(isAdmin)
+                        } else {
+                            // Utilisateur simple va directement vers la gestion de données
+                            ecranActuel = EcranAuth.GestionDonnees
+                        }
                     }
                 )
             }
@@ -65,14 +52,20 @@ fun AuthApp(
                     },
                     onAccederDonnees = {
                         ecranActuel = EcranAuth.GestionDonnees
-                    },
-                    onRetourOnboarding = onRetourOnboarding
+                    }
                 )
             }
             
             is EcranAuth.GestionDonnees -> {
                 DataApp(
-                    onRetourOnboarding = onRetourOnboarding
+                    onRetourAccueil = {
+                        if (isCurrentUserAdmin) {
+                            ecranActuel = EcranAuth.Accueil(true)
+                        } else {
+                            ecranActuel = EcranAuth.Connexion
+                        }
+                    },
+                    isUserMode = !isCurrentUserAdmin  // true pour utilisateur normal, false pour admin
                 )
             }
         }

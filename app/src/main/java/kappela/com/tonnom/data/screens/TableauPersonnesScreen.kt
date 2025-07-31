@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,13 +32,16 @@ import kotlinx.coroutines.launch
 fun TableauPersonnesScreen(
     onRetourSaisie: () -> Unit,
     onVoirDetails: (Personne) -> Unit,
-    onRetourOnboarding: () -> Unit = {}
+    onRetourOnboarding: () -> Unit = {},
+    isUserMode: Boolean = true,
+    personnesTemporaires: List<Personne> = emptyList()
 ) {
     val context = LocalContext.current
     val database = remember { PersonneDatabase.getDatabase(context) }
     val scope = rememberCoroutineScope()
     
-    val personnes by database.personneDao().getToutesPersonnes().collectAsState(initial = emptyList())
+    val personnesDB by database.personneDao().getToutesPersonnes().collectAsState(initial = emptyList())
+    val personnes = if (isUserMode) personnesTemporaires else personnesDB
     var personneASupprimer by remember { mutableStateOf<Personne?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -59,7 +63,7 @@ fun TableauPersonnesScreen(
         TopAppBar(
             title = {
                 Text(
-                    text = "📊 Tableau (${personnes.size})",
+                    text = if (isUserMode) "📊 Mes Données (${personnes.size})" else "📊 Tableau (${personnes.size})",
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -78,7 +82,7 @@ fun TableauPersonnesScreen(
                         contentDescription = "Ajouter"
                     )
                 }
-                if (personnes.isNotEmpty()) {
+                if (personnes.isNotEmpty() && !isUserMode) {
                     IconButton(onClick = { showDeleteAllDialog = true }) {
                         Icon(
                             Icons.Default.Delete,
@@ -203,6 +207,54 @@ fun TableauPersonnesScreen(
                     }
                 }
                 
+                // Message informatif pour les utilisateurs
+                if (isUserMode && personnes.isEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "💡 Données temporaires",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Vos données ne sont pas enregistrées.\nElles disparaîtront si vous quittez cette section.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else if (isUserMode && personnes.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Text(
+                            text = "⚠️ Ces données sont temporaires et ne sont pas sauvegardées",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(12.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                
                 // Liste des personnes
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -291,20 +343,22 @@ fun TableauPersonnesScreen(
                                         )
                                     }
                                     
-                                    // Bouton Supprimer
-                                    IconButton(
-                                        onClick = {
-                                            personneASupprimer = personne
-                                            showDeleteDialog = true
-                                        },
-                                        modifier = Modifier.size(32.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = "Supprimer",
-                                            tint = MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.size(16.dp)
-                                        )
+                                    // Bouton Supprimer (seulement en mode admin)
+                                    if (!isUserMode) {
+                                        IconButton(
+                                            onClick = {
+                                                personneASupprimer = personne
+                                                showDeleteDialog = true
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Supprimer",
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }

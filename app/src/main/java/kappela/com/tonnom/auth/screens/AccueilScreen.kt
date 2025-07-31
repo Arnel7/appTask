@@ -10,12 +10,15 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Lock
+//import androidx.compose.text.input.PasswordVisualTransformation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kappela.com.tonnom.auth.entities.Role
@@ -28,8 +31,7 @@ import kotlinx.coroutines.launch
 fun AccueilScreen(
     isAdmin: Boolean,
     onDeconnexion: () -> Unit,
-    onAccederDonnees: () -> Unit = {},
-    onRetourOnboarding: () -> Unit = {}
+    onAccederDonnees: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val database = remember { AppDatabase.getDatabase(context) }
@@ -47,6 +49,7 @@ fun AccueilScreen(
     }
     var showCreateDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var selectedUser by remember { mutableStateOf<UtilisateurAuth?>(null) }
     var message by remember { mutableStateOf("") }
     
@@ -190,7 +193,7 @@ fun AccueilScreen(
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        "Créer User",
+                                        "Créer Utilisateur",
                                         color = MaterialTheme.colorScheme.onPrimary,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Medium
@@ -278,7 +281,12 @@ fun AccueilScreen(
             ) {
                 items(utilisateurs.filter { it.roleId == 2 }) { user ->
                     Card(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        onClick = {
+                            selectedUser = user
+                            showEditDialog = true
+                        }
                     ) {
                         Row(
                             modifier = Modifier
@@ -342,6 +350,7 @@ fun AccueilScreen(
         }
         
         Spacer(modifier = Modifier.height(16.dp))
+        /*
         
         // Section Gestion des données (accessible à tous)
         Card(
@@ -350,71 +359,24 @@ fun AccueilScreen(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer
             ),
             shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Text(
-                    text = "📋 Gestion des Données Personnelles",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                
-                Text(
-                    text = "Accédez au système de saisie et de gestion des données personnelles (séparé du système d'authentification).",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = onAccederDonnees,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            "🚀 Accéder aux Données",
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                    
-                    OutlinedButton(
-                        onClick = onRetourOnboarding,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Home,
-                            contentDescription = "Menu principal",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-        }
+        )
+        */
     }
     
     // Dialog de création d'utilisateur
     if (showCreateDialog) {
         CreateUserDialog(
             onDismiss = { showCreateDialog = false },
-            onConfirm = { username, password ->
+            onConfirm = { username, password, selectedRole ->
                 scope.launch {
                     try {
                         val utilisateurExistant = database.utilisateurAuthDao().getUtilisateurParUsername(username)
                         if (utilisateurExistant != null) {
-                            message = "Ce nom d'utilisateur existe déjà"
+                            message = "❌ Ce nom d'utilisateur existe déjà"
                         } else {
-                            val roleUserSample = database.roleDao().getRoleParNom(Role.USER_SAMPLE)
-                            val roleId = roleUserSample?.id ?: 2
+                            // Récupérer le rôle sélectionné
+                            val role = database.roleDao().getRoleParNom(selectedRole)
+                            val roleId = role?.id ?: (if (selectedRole == Role.SUPER_ADMIN) 1 else 2)
                             
                             database.utilisateurAuthDao().ajouterUtilisateur(
                                 UtilisateurAuth(
@@ -423,7 +385,8 @@ fun AccueilScreen(
                                     roleId = roleId
                                 )
                             )
-                            message = "Utilisateur '$username' créé avec succès"
+                            val roleText = if (selectedRole == Role.SUPER_ADMIN) "Admin" else "Utilisateur"
+                            message = "✅ $roleText '$username' créé avec succès"
                             showCreateDialog = false
                         }
                     } catch (e: Exception) {
@@ -467,42 +430,282 @@ fun AccueilScreen(
             }
         )
     }
+    
+    // Dialog d'édition utilisateur
+    if (showEditDialog && selectedUser != null) {
+        EditUserDialog(
+            utilisateur = selectedUser!!,
+            onDismiss = { 
+                showEditDialog = false
+                selectedUser = null
+            },
+            onConfirm = { newUsername, newPassword ->
+                scope.launch {
+                    try {
+                        // Vérifier si le nouveau username existe déjà (sauf si c'est le même)
+                        if (newUsername != selectedUser!!.username) {
+                            val existant = database.utilisateurAuthDao().getUtilisateurParUsername(newUsername)
+                            if (existant != null) {
+                                message = "❌ Ce nom d'utilisateur existe déjà"
+                                showEditDialog = false
+                                selectedUser = null
+                                return@launch
+                            }
+                        }
+                        
+                        // Mettre à jour l'utilisateur
+                        val utilisateurModifie = selectedUser!!.copy(
+                            username = newUsername,
+                            motDePasse = newPassword
+                        )
+                        database.utilisateurAuthDao().modifierUtilisateur(utilisateurModifie)
+                        message = "✅ Utilisateur '${newUsername}' modifié avec succès"
+                        
+                        showEditDialog = false
+                        selectedUser = null
+                    } catch (e: Exception) {
+                        message = "❌ Erreur: ${e.message}"
+                        showEditDialog = false
+                        selectedUser = null
+                    }
+                }
+            }
+        )
+    }
 }
 
 @Composable
 fun CreateUserDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit
+    onConfirm: (String, String, String) -> Unit // Ajout du rôle
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var selectedRole by remember { mutableStateOf(Role.USER_SAMPLE) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Créer un User Sample") },
+        title = { Text("Créer un Utilisateur") },
         text = {
             Column {
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
                     label = { Text("Nom d'utilisateur") },
-                    modifier = Modifier.fillMaxWidth()
+                    leadingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Sélecteur de rôle
+                Text(
+                    text = "Rôle utilisateur:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Option Admin
+                    Card(
+                        modifier = Modifier
+                            .weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (selectedRole == Role.SUPER_ADMIN) 
+                                MaterialTheme.colorScheme.primary 
+                            else MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        onClick = { selectedRole = Role.SUPER_ADMIN }
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "👑 Admin",
+                                color = if (selectedRole == Role.SUPER_ADMIN) 
+                                    MaterialTheme.colorScheme.onPrimary 
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Complet",
+                                color = if (selectedRole == Role.SUPER_ADMIN) 
+                                    MaterialTheme.colorScheme.onPrimary 
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                    
+                    // Option User
+                    Card(
+                        modifier = Modifier
+                            .weight(1f),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (selectedRole == Role.USER_SAMPLE) 
+                                MaterialTheme.colorScheme.primary 
+                            else MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        onClick = { selectedRole = Role.USER_SAMPLE }
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "👤 User",
+                                color = if (selectedRole == Role.USER_SAMPLE) 
+                                    MaterialTheme.colorScheme.onPrimary 
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "Limité",
+                                color = if (selectedRole == Role.USER_SAMPLE) 
+                                    MaterialTheme.colorScheme.onPrimary 
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Mot de passe") },
-                    modifier = Modifier.fillMaxWidth()
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation()
                 )
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(username, password) },
+                onClick = { onConfirm(username, password, selectedRole) },
                 enabled = username.isNotBlank() && password.isNotBlank()
             ) {
                 Text("Créer")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler")
+            }
+        }
+    )
+}
+
+@Composable
+fun EditUserDialog(
+    utilisateur: UtilisateurAuth,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String) -> Unit
+) {
+    var username by remember { mutableStateOf(utilisateur.username) }
+    var password by remember { mutableStateOf(utilisateur.motDePasse) }
+    var confirmPassword by remember { mutableStateOf(utilisateur.motDePasse) }
+    var passwordsMatch by remember { mutableStateOf(true) }
+    
+    // Vérifier que les mots de passe correspondent
+    LaunchedEffect(password, confirmPassword) {
+        passwordsMatch = password == confirmPassword
+    }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { 
+            Text(
+                "✏️ Modifier Utilisateur",
+                fontWeight = FontWeight.Bold
+            ) 
+        },
+        text = {
+            Column {
+                Text(
+                    "Modifiez les informations de l'utilisateur:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("Nom d'utilisateur") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Nouveau mot de passe") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation()
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirmer le mot de passe") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Lock, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    isError = !passwordsMatch,
+                    supportingText = if (!passwordsMatch) {
+                        { Text("Les mots de passe ne correspondent pas", color = MaterialTheme.colorScheme.error) }
+                    } else null
+                )
+                
+                if (username.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                    Text(
+                        "Veuillez remplir tous les champs",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(username, password) },
+                enabled = username.isNotBlank() && 
+                         password.isNotBlank() && 
+                         confirmPassword.isNotBlank() && 
+                         passwordsMatch &&
+                         password.length >= 3
+            ) {
+                Text("Modifier")
             }
         },
         dismissButton = {

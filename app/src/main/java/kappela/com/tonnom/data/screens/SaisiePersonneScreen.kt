@@ -31,9 +31,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaisiePersonneScreen(
-    onPersonneAjoutee: () -> Unit,
+    onPersonneAjoutee: (Personne) -> Unit,
     onVoirTableau: () -> Unit,
-    onRetourOnboarding: () -> Unit = {}
+    onRetourOnboarding: () -> Unit = {},
+    isUserMode: Boolean = true
 ) {
     var nom by remember { mutableStateOf("") }
     var prenoms by remember { mutableStateOf("") }
@@ -266,7 +267,10 @@ fun SaisiePersonneScreen(
                                                 categorie = categorieSelectionnee
                                             )
                                             
-                                            database.personneDao().ajouterPersonne(nouvellePersonne)
+                                            if (!isUserMode) {
+                                                // Mode admin : sauvegarder en base de données
+                                                database.personneDao().ajouterPersonne(nouvellePersonne)
+                                            }
                                             
                                             // Réinitialiser le formulaire
                                             nom = ""
@@ -275,7 +279,7 @@ fun SaisiePersonneScreen(
                                             categorieSelectionnee = Categorie.PROFESSIONNEL.libelle
                                             
                                             showSuccessDialog = true
-                                            onPersonneAjoutee()
+                                            onPersonneAjoutee(nouvellePersonne)
                                             
                                         } catch (e: Exception) {
                                             messageErreur = "Erreur lors de l'ajout: ${e.message}"

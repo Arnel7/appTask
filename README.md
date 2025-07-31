@@ -1,24 +1,29 @@
-# TonNOM - Système d'Authentification Android
+# TonNOM - Système d'Authentification et Gestion de Données
 
-Application Android développée avec **Kotlin** et **Jetpack Compose** implémentant un système d'authentification complet avec gestion des rôles.
+Application Android développée avec **Kotlin** et **Jetpack Compose** implémentant un système d'authentification avec redirection automatique selon les rôles.
 
 ## 📱 Fonctionnalités
 
 ### 🔐 Authentification
 - **Connexion** avec nom d'utilisateur et mot de passe
-- **Inscription** pour créer de nouveaux comptes utilisateur
 - **Déconnexion** sécurisée
 - **Validation** des champs de saisie
+- **Redirection automatique** selon le rôle utilisateur
 
 ### 👥 Gestion des Rôles
-- **Super Admin** : Accès complet à l'administration
-- **User Sample** : Utilisateur standard avec accès limité
+- **Super Admin** : Accès à l'administration et gestion des comptes
+- **Utilisateur** : Accès direct au module de gestion de données
 
 ### 🛠️ Administration (Super Admin uniquement)
-- **Créer des utilisateurs** User Sample
+- **Créer des utilisateurs** 
 - **Supprimer des utilisateurs** individuellement
-- **Supprimer tous les utilisateurs** User Sample en une fois
+- **Supprimer tous les utilisateurs** en une fois
 - **Liste en temps réel** des utilisateurs
+
+### 📊 Gestion de Données (Utilisateurs)
+- **Saisie de personnes** avec informations détaillées
+- **Tableau des personnes** enregistrées
+- **Consultation des détails** de chaque personne
 
 ## 🏗️ Architecture Technique
 
@@ -47,7 +52,6 @@ Application Android développée avec **Kotlin** et **Jetpack Compose** impléme
 │   │   └── RoleDao.kt
 │   └── screens/          # Écrans de l'application
 │       ├── ConnexionScreen.kt
-│       ├── InscriptionScreen.kt
 │       └── AccueilScreen.kt
 ├── 🗄️ database/
 │   └── AppDatabase.kt    # Configuration Room
@@ -82,10 +86,10 @@ Mot de passe : admin123
 
 ## 📖 Guide d'utilisation
 
-### 🔑 Première connexion
-1. Lancez l'application
-2. Utilisez le compte admin par défaut
-3. Créez vos premiers utilisateurs User Sample
+### 🔑 Première utilisation
+1. Lancez l'application (démarrage direct sur connexion)
+2. Utilisez le compte admin par défaut (admin/admin123)
+3. Créez vos premiers utilisateurs depuis l'interface d'administration
 
 ### 👤 En tant qu'Admin
 1. **Se connecter** avec le compte admin
@@ -94,9 +98,9 @@ Mot de passe : admin123
 4. **Supprimer** individuellement ou en masse
 
 ### 👨‍💻 En tant qu'Utilisateur
-1. **S'inscrire** via l'écran d'inscription
-2. **Se connecter** avec vos identifiants
-3. **Accéder** à l'écran d'accueil utilisateur
+1. **Se connecter** avec vos identifiants (créés par l'admin)
+2. **Accéder automatiquement** au module de gestion de données
+3. **Saisir et gérer** les informations des personnes
 
 ## 🛡️ Sécurité
 
@@ -117,23 +121,19 @@ Mot de passe : admin123
 
 ### Écran de Connexion
 - Champs nom d'utilisateur et mot de passe
-- Lien vers l'inscription
 - Indication du compte admin par défaut
-
-### Écran d'Inscription
-- Création de nouveaux comptes User Sample
-- Validation des mots de passe
-- Retour vers la connexion
+- Information sur la création de comptes par l'admin uniquement
 
 ### Écran d'Accueil Admin
 - Menu d'administration
 - Liste des utilisateurs en temps réel
 - Actions de création et suppression
 
-### Écran d'Accueil Utilisateur
-- Message de bienvenue
-- Interface simplifiée
-- Bouton de déconnexion
+### Module Gestion de Données (Utilisateurs)
+- Saisie de nouvelles personnes
+- Tableau des personnes enregistrées
+- Consultation des détails
+- Interface intuitive et moderne
 
 ## 🚀 Développement
 
