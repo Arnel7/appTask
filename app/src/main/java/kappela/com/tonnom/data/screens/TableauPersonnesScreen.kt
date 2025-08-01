@@ -246,7 +246,7 @@ fun TableauPersonnesScreen(
                         )
                     ) {
                         Text(
-                            text = "⚠️ Ces données sont temporaires et ne sont pas sauvegardées",
+                            text = "⚠️ Ces données sont temporaires et ne sont pas sauvegardées dans la base",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.padding(12.dp),
@@ -302,7 +302,7 @@ fun TableauPersonnesScreen(
                                     shape = RoundedCornerShape(6.dp)
                                 ) {
                                     Text(
-                                        text = if (personne.sexe == "Masculin") "M" else "F",
+                                        text = personne.sexe ,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
@@ -343,8 +343,8 @@ fun TableauPersonnesScreen(
                                         )
                                     }
                                     
-                                    // Bouton Supprimer (seulement en mode admin)
-                                    if (!isUserMode) {
+                                    // Bouton Supprimer
+
                                         IconButton(
                                             onClick = {
                                                 personneASupprimer = personne
@@ -358,7 +358,7 @@ fun TableauPersonnesScreen(
                                                 tint = MaterialTheme.colorScheme.error,
                                                 modifier = Modifier.size(16.dp)
                                             )
-                                        }
+
                                     }
                                 }
                             }

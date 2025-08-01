@@ -87,7 +87,7 @@ fun ConnexionScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "T",
+                        text = "A",
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
@@ -96,7 +96,7 @@ fun ConnexionScreen(
             }
             
             Text(
-                text = "TonNOM",
+                text = "AppTaskData",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,

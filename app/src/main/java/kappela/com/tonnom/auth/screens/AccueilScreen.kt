@@ -112,7 +112,7 @@ fun AccueilScreen(
                     
                     Column {
                         Text(
-                            text = "TonNOM",
+                            text = "AppTaskData",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimary
@@ -216,7 +216,7 @@ fun AccueilScreen(
                                             val roleUserSample = database.roleDao().getRoleParNom(Role.USER_SAMPLE)
                                             roleUserSample?.let { role ->
                                                 database.utilisateurAuthDao().supprimerUtilisateursParRole(role.id)
-                                                message = "✅ Tous les User Sample supprimés"
+                                                message = "✅ Tous les User simple supprimés"
                                             }
                                         } catch (e: Exception) {
                                             message = "❌ Erreur: ${e.message}"
@@ -270,7 +270,7 @@ fun AccueilScreen(
             
             // Liste des utilisateurs
             Text(
-                text = "Utilisateurs Sample (${utilisateurs.filter { it.roleId == 2 }.size})",
+                text = "Utilisateurs Simple (${utilisateurs.filter { it.roleId == 2 }.size})",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -341,7 +341,7 @@ fun AccueilScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Vous êtes connecté en tant qu'utilisateur sample.\nL'administrateur peut créer et supprimer votre compte.",
+                        text = "Vous êtes connecté en tant qu'utilisateur simple.\nL'administrateur peut créer et supprimer votre compte.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
