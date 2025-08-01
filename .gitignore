@@ -93,3 +93,4 @@ Thumbs.db
 
 # Cache of project
 .gradletasknamecache
+*.xml
