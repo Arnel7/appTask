@@ -39,8 +39,9 @@ fun TableauPersonnesScreen(
     val context = LocalContext.current
     val database = remember { PersonneDatabase.getDatabase(context) }
     val scope = rememberCoroutineScope()
-
-    val personnes = personnesTemporaires
+    
+    val personnesDB by database.personneDao().getToutesPersonnes().collectAsState(initial = emptyList())
+    val personnes = if (isUserMode) personnesTemporaires else personnesDB
     var personneASupprimer by remember { mutableStateOf<Personne?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -379,15 +380,18 @@ fun TableauPersonnesScreen(
                 )
             },
             text = {
-                Text("Voulez-vous que nous supprimons ${personneASupprimer?.nom} ${personneASupprimer?.prenoms} ?")
+                Text("Voulez-vous vraiment supprimer ${personneASupprimer?.nom} ${personneASupprimer?.prenoms} ?")
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         scope.launch {
                             try {
-                          
+                                personneASupprimer?.let { personne ->
+                                    database.personneDao().supprimerPersonne(personne)
+                                }
                                 showDeleteDialog = false
+                                personneASupprimer = null
                             } catch (e: Exception) {
                                 android.util.Log.e("TonNOM_DELETE", "Erreur suppression: ${e.message}")
                             }
@@ -423,7 +427,8 @@ fun TableauPersonnesScreen(
                     onClick = {
                         scope.launch {
                             try {
-                                personnesTemporaires = emptyList()
+                                database.personneDao().supprimerToutesPersonnes()
+                                showDeleteAllDialog = false
                             } catch (e: Exception) {
                                 android.util.Log.e("TonNOM_DELETE_ALL", "Erreur suppression totale: ${e.message}")
                             }
