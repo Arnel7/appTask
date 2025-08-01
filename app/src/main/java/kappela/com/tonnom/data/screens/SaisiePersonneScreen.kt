@@ -266,12 +266,7 @@ fun SaisiePersonneScreen(
                                                 sexe = sexeSelectionne,
                                                 categorie = categorieSelectionnee
                                             )
-                                            
-                                            if (!isUserMode) {
-                                                // Mode admin : sauvegarder en base de données
-                                                database.personneDao().ajouterPersonne(nouvellePersonne)
-                                            }
-                                            
+
                                             // Réinitialiser le formulaire
                                             nom = ""
                                             prenoms = ""
