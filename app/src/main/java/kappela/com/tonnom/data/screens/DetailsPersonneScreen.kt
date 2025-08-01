@@ -164,35 +164,7 @@ fun DetailsPersonneScreen(
                     couleur = MaterialTheme.colorScheme.outline
                 )
                 
-                // Statistiques
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp)
-                    ) {
-                        Text(
-                            text = "📊 Informations système",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            StatItem("ID", personne.id.toString())
-                            StatItem("Caractères nom", personne.nom.length.toString())
-                            StatItem("Caractères prénoms", personne.prenoms.length.toString())
-                        }
-                    }
-                }
+
             }
             
             Spacer(modifier = Modifier.height(24.dp))
