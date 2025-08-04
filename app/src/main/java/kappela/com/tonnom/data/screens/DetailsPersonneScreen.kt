@@ -167,7 +167,7 @@ fun DetailsPersonneScreen(
 
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
+ada            Spacer(modifier = Modifier.height(24.dp))
             
             // Bouton de retour
             Button(

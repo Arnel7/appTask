@@ -275,6 +275,8 @@ fun AccueilScreen(
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+
+
             
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -319,7 +321,7 @@ fun AccueilScreen(
                     }
                 }
             }
-            
+
         } else {
             // Vue utilisateur normal
             Card(
